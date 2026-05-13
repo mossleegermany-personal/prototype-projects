@@ -1,4 +1,4 @@
-import { identifyAnimal } from '../../services/animalIdentifier.js';
+import { identifyAnimal } from '../../Others/Gemini/animalIdentifier.js';
 
 export const identifyController = {
   handleRequest: async (req, res) => {
@@ -14,7 +14,7 @@ export const identifyController = {
 
     if (action === 'identify') {
       try {
-        const { imageBuffer, imageBase64, location } = req.body;
+        const { imageBuffer, imageBase64, mimeType, location } = req.body;
 
         if (!imageBuffer && !imageBase64) {
           return res.status(400).json({
@@ -23,11 +23,19 @@ export const identifyController = {
           });
         }
 
+        const resolvedMimeType = mimeType || 'image/jpeg';
+        if (!resolvedMimeType.startsWith('image/')) {
+          return res.status(400).json({
+            success: false,
+            error: 'Only image media types are supported (e.g. image/jpeg, image/png, image/webp).'
+          });
+        }
+
         const buffer = imageBase64
           ? Buffer.from(imageBase64, 'base64')
           : Buffer.from(imageBuffer);
 
-        const result = await identifyAnimal(buffer, location);
+        const result = await identifyAnimal(buffer, resolvedMimeType, location);
 
         if (result.success) {
           return res.json({

@@ -10,7 +10,7 @@ const MODELS = {
   FALLBACK2: 'gemini-2.0-flash'   // Good accuracy (1500 req/day per key)
 };
 
-export async function identifyAnimal(imageBuffer, location = null) {
+export async function identifyAnimal(imageBuffer, mimeType = 'image/jpeg', location = null) {
   const modelsToTry = [MODELS.PRIMARY, MODELS.FALLBACK, MODELS.FALLBACK2];
   const debugLogs = [];
 
@@ -42,7 +42,7 @@ If the image does not contain an animal or you cannot identify it, respond with:
         prompt,
         {
           inlineData: {
-            mimeType: 'image/jpeg',
+            mimeType: mimeType,
             data: base64Image
           }
         }

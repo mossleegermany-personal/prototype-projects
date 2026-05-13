@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
+app.post('/', (req, res) => {
   res.json({ status: 'ok', message: 'WWF Animal Identifier Prototype API is running!' });
 });
 
