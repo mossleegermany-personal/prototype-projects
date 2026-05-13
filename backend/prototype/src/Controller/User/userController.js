@@ -24,7 +24,11 @@ export const userController = {
   retrieveUser: async (req, res) => {
     try {
       const { userId, email } = req.body;
-      const user = await dbFind(SHEET, userId ? { 'User ID': userId } : { Email: email });
+      console.log('retrieveUser body:', JSON.stringify(req.body));
+      const query = userId ? { 'User ID': userId } : { Email: email };
+      console.log('retrieveUser query:', JSON.stringify(query));
+      const user = await dbFind(SHEET, query);
+      console.log('retrieveUser result:', user);
       if (!user) {
         const err = new Error('User not found.');
         err.status = 404;
