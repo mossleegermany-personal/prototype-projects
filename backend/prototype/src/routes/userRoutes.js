@@ -10,10 +10,11 @@ router.post('/', (req, res) => {
   if (purpose === 'retrieveUser')  return userController.retrieveUser(req, res);
   if (purpose === 'editUser')      return userController.editUser(req, res);
   if (purpose === 'deleteUser')    return userController.deleteUser(req, res);
+  if (purpose === 'resetPassword') return userController.resetPassword(req, res);
 
   return res.status(400).json({
     success: false,
-    error: "Invalid purpose. Use 'createNewUser', 'retrieveUser', 'editUser', or 'deleteUser'.",
+    error: "Invalid purpose. Use 'createNewUser', 'retrieveUser', 'editUser', 'deleteUser', or 'resetPassword'.",
   });
 });
 

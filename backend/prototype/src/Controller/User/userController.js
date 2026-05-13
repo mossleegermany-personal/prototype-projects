@@ -71,6 +71,33 @@ export const userController = {
     }
   },
 
+  resetPassword: async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      if (!email || !newPassword) {
+        const err = new Error('Email and newPassword are required.');
+        err.status = 400;
+        throw err;
+      }
+      const user = await dbFind(SHEET, { Email: email });
+      if (!user) {
+        const err = new Error('User not found.');
+        err.status = 404;
+        throw err;
+      }
+      const updated = await dbUpdate(SHEET, { Email: email }, { Password: newPassword });
+      if (!updated) {
+        const err = new Error('Failed to reset password.');
+        err.status = 500;
+        throw err;
+      }
+      return res.json({ success: true, data: { message: 'Password reset successfully.' } });
+    } catch (err) {
+      console.error('userController.resetPassword:', err);
+      return res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  },
+
   deleteUser: async (req, res) => {
     try {
       const { userId } = req.body;
