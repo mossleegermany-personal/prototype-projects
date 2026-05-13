@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import identifyRoutes from './routes/identifyRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.post('/', (req, res) => {
 });
 
 app.use('/identify', identifyRoutes);
+app.use('/users', userRoutes);
 
 app.use((err, req, res, next) => {
   if (err) {

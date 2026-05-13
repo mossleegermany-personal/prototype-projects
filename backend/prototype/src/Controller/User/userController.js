@@ -1,0 +1,88 @@
+import bcrypt from 'bcryptjs';
+import { dbFind, dbCreate, dbUpdate, dbRemove } from '../../Database/index.js';
+
+const SHEET = 'Users';
+const SALT_ROUNDS = 12;
+
+export const userController = {
+  createNewUser: async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+      const existing = await dbFind(SHEET, { Email: email });
+      if (existing) {
+        const err = new Error('Email already in use.');
+        err.status = 409;
+        throw err;
+      }
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = await dbCreate(SHEET, { Name: name, Email: email, Password: hashedPassword });
+      const { Password: _, ...data } = user;
+      return res.status(201).json({ success: true, data });
+    } catch (err) {
+      console.error('userController.createNewUser:', err);
+      return res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  },
+
+  retrieveUser: async (req, res) => {
+    try {
+      const { userId, email } = req.body;
+      const user = await dbFind(SHEET, userId ? { 'User ID': userId } : { Email: email });
+      if (!user) {
+        const err = new Error('User not found.');
+        err.status = 404;
+        throw err;
+      }
+      const { Password: _, ...data } = user;
+      return res.json({ success: true, data });
+    } catch (err) {
+      console.error('userController.retrieveUser:', err);
+      return res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  },
+
+  editUser: async (req, res) => {
+    try {
+      const { userId, name, email, password } = req.body;
+      const updates = {};
+      if (name) updates['Name'] = name;
+      if (email) {
+        const existing = await dbFind(SHEET, { Email: email });
+        if (existing && String(existing['User ID']) !== String(userId)) {
+          const err = new Error('Email already in use.');
+          err.status = 409;
+          throw err;
+        }
+        updates['Email'] = email;
+      }
+      if (password) updates['Password'] = await bcrypt.hash(password, SALT_ROUNDS);
+      const updated = await dbUpdate(SHEET, { 'User ID': userId }, updates);
+      if (!updated) {
+        const err = new Error('User not found.');
+        err.status = 404;
+        throw err;
+      }
+      const { Password: _, ...data } = updated;
+      return res.json({ success: true, data });
+    } catch (err) {
+      console.error('userController.editUser:', err);
+      return res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  },
+
+  deleteUser: async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const deleted = await dbRemove(SHEET, { 'User ID': userId });
+      if (!deleted) {
+        const err = new Error('User not found.');
+        err.status = 404;
+        throw err;
+      }
+      return res.json({ success: true, data: { message: 'User deleted.' } });
+    } catch (err) {
+      console.error('userController.deleteUser:', err);
+      return res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  },
+};

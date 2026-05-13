@@ -1,5 +1,5 @@
 import express from 'express';
-import { identifyController } from '../Controller/Identify/identifyController.js';
+import { identifyController } from '../Controller/Identification/identifyController.js';
 
 const router = express.Router();
 
