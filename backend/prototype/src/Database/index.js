@@ -69,8 +69,18 @@ export async function dbCreate(sheetName, data) {
   }
 
   const now = new Date();
-  if (headers.includes('Date') && !payload['Date']) payload['Date'] = now.toISOString().split('T')[0];
-  if (headers.includes('Time') && !payload['Time']) payload['Time'] = now.toTimeString().split(' ')[0];
+  const sgLocale = 'en-GB';
+  const sgTz = 'Asia/Singapore';
+  if (headers.includes('Date') && !payload['Date']) {
+    payload['Date'] = new Intl.DateTimeFormat(sgLocale, {
+      timeZone: sgTz, day: '2-digit', month: '2-digit', year: 'numeric',
+    }).format(now); // dd/mm/yyyy
+  }
+  if (headers.includes('Time') && !payload['Time']) {
+    payload['Time'] = new Intl.DateTimeFormat(sgLocale, {
+      timeZone: sgTz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    }).format(now) + ' hrs'; // HH:mm:ss hrs
+  }
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,

@@ -63,16 +63,22 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D609F042CBF84471A0F0B072C69E76BA }}
 
       - name: Configure Azure App Service settings
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEETS_SPREADSHEET_ID: ${{ secrets.GOOGLE_SHEETS_SPREADSHEET_ID }}
+          GOOGLE_DRIVE_MAIN_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_MAIN_FOLDER_ID }}
+          GOOGLE_DRIVE_IMAGES_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_IMAGES_FOLDER_ID }}
         run: |
           az webapp config appsettings set \
             --name prototype-backend \
             --resource-group animal-wildlife \
             --settings \
-              GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}' \
-              GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' \
-              GOOGLE_SHEETS_SPREADSHEET_ID='${{ secrets.GOOGLE_SHEETS_SPREADSHEET_ID }}' \
-              GOOGLE_DRIVE_MAIN_FOLDER_ID='${{ secrets.GOOGLE_DRIVE_MAIN_FOLDER_ID }}' \
-              GOOGLE_DRIVE_IMAGES_FOLDER_ID='${{ secrets.GOOGLE_DRIVE_IMAGES_FOLDER_ID }}'
+              "GEMINI_API_KEY=${GEMINI_API_KEY}" \
+              "GOOGLE_SERVICE_ACCOUNT_JSON=${GOOGLE_SERVICE_ACCOUNT_JSON}" \
+              "GOOGLE_SHEETS_SPREADSHEET_ID=${GOOGLE_SHEETS_SPREADSHEET_ID}" \
+              "GOOGLE_DRIVE_MAIN_FOLDER_ID=${GOOGLE_DRIVE_MAIN_FOLDER_ID}" \
+              "GOOGLE_DRIVE_IMAGES_FOLDER_ID=${GOOGLE_DRIVE_IMAGES_FOLDER_ID}"
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
