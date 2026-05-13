@@ -1,8 +1,6 @@
-import bcrypt from 'bcryptjs';
 import { dbFind, dbCreate, dbUpdate, dbRemove } from '../../Database/index.js';
 
 const SHEET = 'Users';
-const SALT_ROUNDS = 12;
 
 export const userController = {
   createNewUser: async (req, res) => {
@@ -14,8 +12,7 @@ export const userController = {
         err.status = 409;
         throw err;
       }
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-      const user = await dbCreate(SHEET, { Name: name, Email: email, Password: hashedPassword });
+      const user = await dbCreate(SHEET, { Name: name, Email: email, Password: password });
       const { Password: _, ...data } = user;
       return res.status(201).json({ success: true, data });
     } catch (err) {
@@ -55,7 +52,7 @@ export const userController = {
         }
         updates['Email'] = email;
       }
-      if (password) updates['Password'] = await bcrypt.hash(password, SALT_ROUNDS);
+      if (password) updates['Password'] = password;
       const updated = await dbUpdate(SHEET, { 'User ID': userId }, updates);
       if (!updated) {
         const err = new Error('User not found.');
