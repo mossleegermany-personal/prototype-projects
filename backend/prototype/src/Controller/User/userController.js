@@ -45,11 +45,16 @@ export const userController = {
   editUser: async (req, res) => {
     try {
       const { userId, name, email, password } = req.body;
+      if (!userId) {
+        const err = new Error('userId is required.');
+        err.status = 400;
+        throw err;
+      }
       const updates = {};
       if (name) updates['Name'] = name;
       if (email) {
         const existing = await dbFind(SHEET, { Email: email });
-        if (existing && String(existing['User ID']) !== String(userId)) {
+        if (existing && String(existing['User ID']).trim() !== String(userId).trim()) {
           const err = new Error('Email already in use.');
           err.status = 409;
           throw err;
