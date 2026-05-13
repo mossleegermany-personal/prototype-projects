@@ -37,12 +37,18 @@ function objectToRow(headers, obj) {
   return headers.map((h) => obj[h] ?? '');
 }
 
+function normalizeForMatch(key, value) {
+  const normalized = String(value ?? '').trim();
+  return key === 'Email' ? normalized.toLowerCase() : normalized;
+}
+
 // Finds the row index (including header) matching { field: value }
 function findRowIndex(rows, headers, match) {
   const [key, value] = Object.entries(match)[0];
   const colIdx = headers.indexOf(key);
   if (colIdx === -1) return -1;
-  return rows.findIndex((r, i) => i > 0 && String(r[colIdx] ?? '') === String(value));
+  const target = normalizeForMatch(key, value);
+  return rows.findIndex((r, i) => i > 0 && normalizeForMatch(key, r[colIdx]) === target);
 }
 
 // Find one row — match e.g. { Email: 'a@b.com' } or { 'User ID': 1 }

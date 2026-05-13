@@ -45,7 +45,8 @@ export const userController = {
   editUser: async (req, res) => {
     try {
       const { userId, name, email, password } = req.body;
-      if (!userId) {
+      const resolvedUserId = userId ?? req.body['User ID'] ?? req.body.id;
+      if (!resolvedUserId) {
         const err = new Error('userId is required.');
         err.status = 400;
         throw err;
@@ -54,7 +55,7 @@ export const userController = {
       if (name) updates['Name'] = name;
       if (email) {
         const existing = await dbFind(SHEET, { Email: email });
-        if (existing && String(existing['User ID']).trim() !== String(userId).trim()) {
+        if (existing && String(existing['User ID']).trim() !== String(resolvedUserId).trim()) {
           const err = new Error('Email already in use.');
           err.status = 409;
           throw err;
@@ -62,7 +63,7 @@ export const userController = {
         updates['Email'] = email;
       }
       if (password) updates['Password'] = password;
-      const updated = await dbUpdate(SHEET, { 'User ID': userId }, updates);
+      const updated = await dbUpdate(SHEET, { 'User ID': String(resolvedUserId).trim() }, updates);
       if (!updated) {
         const err = new Error('User not found.');
         err.status = 404;
@@ -79,20 +80,39 @@ export const userController = {
   resetPassword: async (req, res) => {
     try {
       const { email, newPassword } = req.body;
-      if (!email || !newPassword) {
-        const err = new Error('Email and newPassword are required.');
+      const resolvedUserId = req.body.userId ?? req.body['User ID'] ?? req.body.id;
+      const normalizedEmail = typeof email === 'string' ? email.trim() : email;
+
+      if ((!normalizedEmail && !resolvedUserId) || !newPassword) {
+        const err = new Error('Provide userId (or id) or email, and newPassword.');
         err.status = 400;
         throw err;
       }
-      const user = await dbFind(SHEET, { Email: email });
+
+      const findQuery = resolvedUserId
+        ? { 'User ID': String(resolvedUserId).trim() }
+        : { Email: normalizedEmail };
+      const user = await dbFind(SHEET, findQuery);
       if (!user) {
         const err = new Error('User not found.');
         err.status = 404;
         throw err;
       }
-      const updated = await dbUpdate(SHEET, { Email: email }, { Password: newPassword });
+
+      const updated = await dbUpdate(
+        SHEET,
+        { 'User ID': String(user['User ID']).trim() },
+        { Password: newPassword }
+      );
       if (!updated) {
         const err = new Error('Failed to reset password.');
+        err.status = 500;
+        throw err;
+      }
+
+      const verified = await dbFind(SHEET, { 'User ID': String(user['User ID']).trim() });
+      if (!verified || String(verified.Password ?? '') !== String(newPassword)) {
+        const err = new Error('Password update did not persist in Google Sheets.');
         err.status = 500;
         throw err;
       }
